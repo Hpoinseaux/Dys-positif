@@ -82,17 +82,22 @@ elif option == "Lecture (PDF vers Audio)":
     else:
         st.info("Veuillez télécharger un fichier PDF pour commencer.")
 
+
 elif option == "Écriture (Audio vers Texte)":
     st.header("Convertir un Enregistrement Audio en Texte")
 
-    # Bouton pour lancer l'enregistrement
-    if st.button("Commencer l'enregistrement"):
-        with st.spinner("Écoute..."):
-            result_text = audio_to_text()
+    # Téléchargement du fichier audio (format WAV, MP3, etc.)
+    uploaded_audio = st.file_uploader("Télécharger un fichier audio", type=["wav", "mp3"])
 
-        if result_text:
-            st.write("Texte extrait de l'audio :")
-            st.text_area("Résultat", value=result_text, height=200)
+    if uploaded_audio is not None:
+        st.audio(uploaded_audio, format="audio/wav")
 
-            # Bouton pour copier le texte
-            st.write("Vous pouvez copier ce texte pour l'utiliser ailleurs.")
+        if st.button("Convertir en texte"):
+            with st.spinner("Transcription en cours..."):
+                result_text = audio_to_text(uploaded_audio)
+
+            if result_text:
+                st.write("Texte extrait de l'audio :")
+                st.text_area("Résultat", value=result_text, height=200)
+    else:
+        st.info("Veuillez télécharger un fichier audio pour commencer.")
