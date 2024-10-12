@@ -3,6 +3,7 @@ import fitz  # PyMuPDF pour l'extraction de texte PDF
 from gtts import gTTS
 from io import BytesIO
 import speech_recognition as sr
+from pydub import AudioSegment
 
 # Fonction pour extraire du texte depuis un PDF
 def extract_text_from_pdf(pdf_file):
@@ -20,10 +21,18 @@ def text_to_audio(text, lang='fr'):
     audio_file.seek(0)  # Remettre le pointeur au début du fichier pour la lecture
     return audio_file
 
+# Fonction pour convertir un fichier audio téléchargé (MP3) en format WAV
+def convert_audio_to_wav(mp3_file):
+    audio = AudioSegment.from_file(mp3_file, format="mp3")
+    wav_io = BytesIO()
+    audio.export(wav_io, format="wav")
+    wav_io.seek(0)  # Remettre le pointeur au début du fichier pour la lecture
+    return wav_io
+
 # Fonction pour convertir un fichier audio téléchargé en texte
-def audio_to_text(audio_file):
+def audio_to_text(wav_audio):
     r = sr.Recognizer()
-    with sr.AudioFile(audio_file) as source:
+    with sr.AudioFile(wav_audio) as source:
         audio_data = r.record(source)
         try:
             text = r.recognize_google(audio_data, language="fr-FR")
@@ -84,16 +93,18 @@ elif option == "Lecture (PDF vers Audio)":
 
 elif option == "Écriture (Audio vers Texte)":
     st.header("Convertir un Enregistrement Audio en Texte")
-
-    # Téléchargement du fichier audio (format WAV, MP3, etc.)
-    uploaded_audio = st.file_uploader("Télécharger un fichier audio", type=["wav", "mp3"])
+    # Téléchargement du fichier audio (format MP3)
+    uploaded_audio = st.file_uploader("Télécharger un fichier audio", type=["mp3"])
 
     if uploaded_audio is not None:
-        st.audio(uploaded_audio, format="audio/wav")
+        st.audio(uploaded_audio, format="audio/mp3")
 
         if st.button("Convertir en texte"):
+            with st.spinner("Conversion de l'audio en WAV..."):
+                wav_audio = convert_audio_to_wav(uploaded_audio)
+
             with st.spinner("Transcription en cours..."):
-                result_text = audio_to_text(uploaded_audio)
+                result_text = audio_to_text(wav_audio)
 
             if result_text:
                 st.write("Texte extrait de l'audio :")
