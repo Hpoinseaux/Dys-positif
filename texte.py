@@ -34,17 +34,27 @@ def audio_to_text():
         except sr.RequestError:
             return "Erreur de service avec la reconnaissance vocale."
 
-# Page d'introduction
-st.title("Application pour les élèves ayant des difficultés de lecture et d'écriture")
-st.write("""
-Cette application est conçue pour aider les élèves qui ont des difficultés en lecture et en écriture. 
-Elle propose deux fonctionnalités : 
-1. **Lecture** : Convertir un fichier PDF en audio afin que l'élève puisse écouter le contenu.
-2. **Écriture** : Enregistrer la voix de l'élève et transformer ses paroles en texte.
-""")
+# Ajout d'un panneau latéral pour la navigation
+st.sidebar.title("Navigation")
+option = st.sidebar.selectbox(
+    "Choisissez une fonctionnalité",
+    ("Accueil", "Lecture (PDF vers Audio)", "Écriture (Audio vers Texte)")
+)
 
-# Bouton "Lecture"
-if st.button("Lecture"):
+# Contenu de la page principale
+if option == "Accueil":
+    st.title("Application pour les élèves ayant des difficultés de lecture et d'écriture")
+    st.write("""
+    Cette application est conçue pour aider les élèves qui ont des difficultés en lecture et en écriture.
+    Elle propose deux fonctionnalités principales :
+    
+    1. **Lecture** : Convertir un fichier PDF en audio afin que l'élève puisse écouter le contenu.
+    2. **Écriture** : Enregistrer la voix de l'élève et transformer ses paroles en texte.
+    
+    Utilisez le panneau latéral pour naviguer entre les différentes fonctionnalités.
+    """)
+
+elif option == "Lecture (PDF vers Audio)":
     st.header("Convertir un PDF en Audio")
 
     # Téléchargement du fichier PDF
@@ -72,8 +82,7 @@ if st.button("Lecture"):
     else:
         st.info("Veuillez télécharger un fichier PDF pour commencer.")
 
-# Bouton "Écriture"
-if st.button("Écriture"):
+elif option == "Écriture (Audio vers Texte)":
     st.header("Convertir un Enregistrement Audio en Texte")
 
     # Bouton pour lancer l'enregistrement
