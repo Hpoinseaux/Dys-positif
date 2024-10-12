@@ -4,8 +4,11 @@ from gtts import gTTS
 from io import BytesIO
 import speech_recognition as sr
 import soundfile as sf
-import numpy as np
+from pydub import AudioSegment
+import imageio_ffmpeg as ffmpeg
 
+
+AudioSegment.converter = ffmpeg.get_ffmpeg_exe()
 
 
 # Fonction pour extraire du texte depuis un PDF
@@ -26,9 +29,13 @@ def text_to_audio(text, lang='fr'):
 
 # Fonction pour lire un MP3 et le convertir en WAV
 def convert_mp3_to_wav(mp3_file):
-    # Lire le fichier MP3 et le convertir en tableau numpy
-    audio_data, sample_rate = sf.read(mp3_file)
-    return save_audio_to_wav(audio_data, sample_rate)
+    # Utiliser pydub pour lire le fichier MP3
+    audio = AudioSegment.from_file(mp3_file, format="mp3")
+    # Sauvegarder en WAV
+    wav_io = BytesIO()
+    audio.export(wav_io, format="wav")
+    wav_io.seek(0)  # Remettre le pointeur au début du fichier pour la lecture
+    return wav_io
 
 # Fonction pour convertir un fichier audio téléchargé (WAV) en texte
 def audio_to_text(audio_file):
@@ -43,12 +50,6 @@ def audio_to_text(audio_file):
         except sr.RequestError:
             return "Erreur de service avec la reconnaissance vocale."
 
-# Fonction pour sauvegarder un tableau numpy dans un fichier WAV
-def save_audio_to_wav(audio_data, sample_rate=44100):
-    wav_io = BytesIO()
-    sf.write(wav_io, audio_data, sample_rate, format='WAV')
-    wav_io.seek(0)  # Remettre le pointeur au début du fichier pour la lecture
-    return wav_io
 
 # Ajout d'un panneau latéral pour la navigation
 st.sidebar.title("Navigation")

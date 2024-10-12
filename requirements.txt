@@ -4,3 +4,5 @@ pymupdf
 SpeechRecognition 
 soundfile
 sounddevice
+pydub
+imageio-ffmpeg
