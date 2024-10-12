@@ -3,21 +3,10 @@ import fitz  # PyMuPDF pour l'extraction de texte PDF
 from gtts import gTTS
 from io import BytesIO
 import speech_recognition as sr
-from pydub import AudioSegment
-import imageio_ffmpeg as ffmpeg
-import subprocess
-
-# Fonction pour vérifier si FFmpeg est installé
-def check_ffmpeg():
-    try:
-        subprocess.run(["ffmpeg", "-version"], check=True)
-        return True
-    except FileNotFoundError:
-        return False
+import soundfile as sf
+import numpy as np
 
 
-# Configuration pour FFmpeg avec pydub
-AudioSegment.converter = ffmpeg.get_ffmpeg_exe()
 
 # Fonction pour extraire du texte depuis un PDF
 def extract_text_from_pdf(pdf_file):
@@ -35,18 +24,16 @@ def text_to_audio(text, lang='fr'):
     audio_file.seek(0)  # Remettre le pointeur au début du fichier pour la lecture
     return audio_file
 
-# Fonction pour convertir un fichier audio téléchargé (MP3) en format WAV
-def convert_audio_to_wav(mp3_file):
-    audio = AudioSegment.from_file(mp3_file, format="mp3")
-    wav_io = BytesIO()
-    audio.export(wav_io, format="wav")
-    wav_io.seek(0)  # Remettre le pointeur au début du fichier pour la lecture
-    return wav_io
+# Fonction pour lire un MP3 et le convertir en WAV
+def convert_mp3_to_wav(mp3_file):
+    # Lire le fichier MP3 et le convertir en tableau numpy
+    audio_data, sample_rate = sf.read(mp3_file)
+    return save_audio_to_wav(audio_data, sample_rate)
 
-# Fonction pour convertir un fichier audio téléchargé en texte
-def audio_to_text(wav_audio):
+# Fonction pour convertir un fichier audio téléchargé (WAV) en texte
+def audio_to_text(audio_file):
     r = sr.Recognizer()
-    with sr.AudioFile(wav_audio) as source:
+    with sr.AudioFile(audio_file) as source:
         audio_data = r.record(source)
         try:
             text = r.recognize_google(audio_data, language="fr-FR")
@@ -55,6 +42,13 @@ def audio_to_text(wav_audio):
             return "Je n'ai pas compris l'audio."
         except sr.RequestError:
             return "Erreur de service avec la reconnaissance vocale."
+
+# Fonction pour sauvegarder un tableau numpy dans un fichier WAV
+def save_audio_to_wav(audio_data, sample_rate=44100):
+    wav_io = BytesIO()
+    sf.write(wav_io, audio_data, sample_rate, format='WAV')
+    wav_io.seek(0)  # Remettre le pointeur au début du fichier pour la lecture
+    return wav_io
 
 # Ajout d'un panneau latéral pour la navigation
 st.sidebar.title("Navigation")
@@ -107,15 +101,21 @@ elif option == "Lecture (PDF vers Audio)":
 
 elif option == "Écriture (Audio vers Texte)":
     st.header("Convertir un Enregistrement Audio en Texte")
-    # Téléchargement du fichier audio (format MP3)
-    uploaded_audio = st.file_uploader("Télécharger un fichier audio", type=["mp3"])
+
+    # Téléchargement du fichier audio (format WAV ou MP3)
+    uploaded_audio = st.file_uploader("Télécharger un fichier audio (WAV ou MP3)", type=["wav", "mp3"])
 
     if uploaded_audio is not None:
-        st.audio(uploaded_audio, format="audio/mp3")
+        # Lecture de l'audio
+        st.audio(uploaded_audio)
 
         if st.button("Convertir en texte"):
-            with st.spinner("Conversion de l'audio en WAV..."):
-                wav_audio = convert_audio_to_wav(uploaded_audio)
+            # Si le fichier est MP3, le convertir en WAV
+            if uploaded_audio.type == "audio/mp3":
+                st.warning("Le fichier MP3 sera converti en WAV pour la transcription.")
+                wav_audio = convert_mp3_to_wav(uploaded_audio)
+            else:
+                wav_audio = uploaded_audio
 
             with st.spinner("Transcription en cours..."):
                 result_text = audio_to_text(wav_audio)

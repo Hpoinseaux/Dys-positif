@@ -2,5 +2,5 @@ streamlit
 gtts
 pymupdf
 SpeechRecognition 
-pydub
-imageio-ffmpeg
+soundfile
+sounddevice
