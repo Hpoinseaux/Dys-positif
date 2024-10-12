@@ -2,4 +2,5 @@ streamlit
 gtts
 pymupdf
 SpeechRecognition 
-pydub 
+pydub
+ffmpeg
