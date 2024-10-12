@@ -20,14 +20,13 @@ def text_to_audio(text, lang='fr'):
     audio_file.seek(0)  # Remettre le pointeur au début du fichier pour la lecture
     return audio_file
 
-# Fonction pour convertir l'audio en texte (utilise microphone par défaut)
-def audio_to_text():
+# Fonction pour convertir un fichier audio téléchargé en texte
+def audio_to_text(audio_file):
     r = sr.Recognizer()
-    with sr.Microphone() as source:
-        st.info("Enregistrement... Parlez maintenant")
-        audio = r.listen(source)
+    with sr.AudioFile(audio_file) as source:
+        audio_data = r.record(source)
         try:
-            text = r.recognize_google(audio, language="fr-FR")
+            text = r.recognize_google(audio_data, language="fr-FR")
             return text
         except sr.UnknownValueError:
             return "Je n'ai pas compris l'audio."
