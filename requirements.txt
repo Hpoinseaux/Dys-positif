@@ -3,4 +3,4 @@ gtts
 pymupdf
 SpeechRecognition 
 pydub
-ffmpeg
+imageio-ffmpeg

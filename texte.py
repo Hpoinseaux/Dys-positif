@@ -4,6 +4,10 @@ from gtts import gTTS
 from io import BytesIO
 import speech_recognition as sr
 from pydub import AudioSegment
+import imageio_ffmpeg as ffmpeg
+
+# Configuration pour FFmpeg avec pydub
+AudioSegment.converter = ffmpeg.get_ffmpeg_exe()
 
 # Fonction pour extraire du texte depuis un PDF
 def extract_text_from_pdf(pdf_file):
