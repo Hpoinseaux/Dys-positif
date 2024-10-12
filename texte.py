@@ -5,6 +5,16 @@ from io import BytesIO
 import speech_recognition as sr
 from pydub import AudioSegment
 import imageio_ffmpeg as ffmpeg
+import subprocess
+
+# Fonction pour vérifier si FFmpeg est installé
+def check_ffmpeg():
+    try:
+        subprocess.run(["ffmpeg", "-version"], check=True)
+        return True
+    except FileNotFoundError:
+        return False
+
 
 # Configuration pour FFmpeg avec pydub
 AudioSegment.converter = ffmpeg.get_ffmpeg_exe()
