@@ -112,7 +112,7 @@ elif option == "Écriture (Audio vers Texte)":
 
         if st.button("Convertir en texte"):
             # Si le fichier est MP3, le convertir en WAV
-            if uploaded_audio.type == "audio/mp3":
+            if uploaded_audio.type == "mp3":
                 st.warning("Le fichier MP3 sera converti en WAV pour la transcription.")
                 wav_audio = convert_mp3_to_wav(uploaded_audio)
             else:
