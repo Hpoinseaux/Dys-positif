@@ -19,7 +19,7 @@ def extract_text_from_pdf(pdf_file):
     return text
 
 # Fonction pour diviser le texte en morceaux de taille maximale
-def split_text(text, max_length=5000):
+def split_text(text, max_length=4500):
     # Diviser le texte en morceaux ne dépassant pas max_length caractères
     return [text[i:i + max_length] for i in range(0, len(text), max_length)]
 
