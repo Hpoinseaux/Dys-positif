@@ -18,12 +18,23 @@ def extract_text_from_pdf(pdf_file):
         text += page.get_text()
     return text
 
-# Fonction pour traduire du texte dans une autre langue
+# Fonction pour diviser le texte en morceaux de taille maximale
+def split_text(text, max_length=5000):
+    # Diviser le texte en morceaux ne dépassant pas max_length caractères
+    return [text[i:i + max_length] for i in range(0, len(text), max_length)]
+
+# Fonction pour traduire du texte dans une autre langue avec deep_translator
 def translate_text(text, target_language):
     translator = GoogleTranslator(source='auto', target=target_language)
-    translation = translator.translate(text)
-    return translation
-
+    # Diviser le texte en morceaux si nécessaire
+    text_segments = split_text(text)
+    
+    # Traduire chaque segment et les concaténer
+    translated_text = ""
+    for segment in text_segments:
+        translated_text += translator.translate(segment)
+    
+    return translated_text
 # Fonction pour générer un PDF avec du texte
 def generate_pdf(text):
     pdf = FPDF()
