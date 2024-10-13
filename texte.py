@@ -107,14 +107,14 @@ elif option == "Lecture (PDF vers Audio)":
         text = extract_text_from_pdf(uploaded_pdf)
 
         if text:
-            st.text_area("Contenu extrait du PDF :", value=text, height=200)
+            modified_text = st.text_area("Contenu extrait du PDF :", value=text, height=200)
 
             # Choix de la langue
             language = st.selectbox("Choisissez la langue de l'audio", ['fr', 'en', 'es', 'de'])
 
             # Bouton pour générer l'audio
             if st.button("Convertir en audio"):
-                audio_file = text_to_audio(text, lang=language)
+                audio_file = text_to_audio(modified_text, lang=language)
 
                 # Lecture de l'audio et téléchargement
                 st.audio(audio_file, format='audio/mp3')
