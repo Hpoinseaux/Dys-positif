@@ -3,7 +3,7 @@ import fitz  # PyMuPDF pour l'extraction de texte PDF
 from gtts import gTTS
 from io import BytesIO
 import speech_recognition as sr
-from googletrans import Translator  # Pour la traduction
+from deep_translator import GoogleTranslator
 from fpdf import FPDF  # Pour générer un nouveau PDF
 
 
@@ -20,9 +20,9 @@ def extract_text_from_pdf(pdf_file):
 
 # Fonction pour traduire du texte dans une autre langue
 def translate_text(text, target_language):
-    translator = Translator()
-    translation = translator.translate(text, dest=target_language)
-    return translation.text
+    translator = GoogleTranslator(source='auto', target=target_language)
+    translation = translator.translate(text)
+    return translation
 
 # Fonction pour générer un PDF avec du texte
 def generate_pdf(text):
@@ -144,7 +144,7 @@ elif option == "Traduction PDF":
             st.error("Aucun texte n'a pu être extrait de ce fichier PDF.")
     else:
         st.info("Veuillez télécharger un fichier PDF pour commencer.")
-        
+
 elif option == "Écriture (Audio vers Texte)":
     st.header("Convertir un Enregistrement Audio en Texte")
 
