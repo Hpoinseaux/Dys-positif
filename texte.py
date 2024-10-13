@@ -3,6 +3,8 @@ import fitz  # PyMuPDF pour l'extraction de texte PDF
 from gtts import gTTS
 from io import BytesIO
 import speech_recognition as sr
+from googletrans import Translator  # Pour la traduction
+from fpdf import FPDF  # Pour générer un nouveau PDF
 
 
 
@@ -15,6 +17,28 @@ def extract_text_from_pdf(pdf_file):
     for page in doc:
         text += page.get_text()
     return text
+
+# Fonction pour traduire du texte dans une autre langue
+def translate_text(text, target_language):
+    translator = Translator()
+    translation = translator.translate(text, dest=target_language)
+    return translation.text
+
+# Fonction pour générer un PDF avec du texte
+def generate_pdf(text):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.set_font("Arial", size=12)
+    
+    # Ajouter le texte traduit au PDF
+    pdf.multi_cell(0, 10, text)
+    
+    # Sauvegarder le fichier PDF dans un buffer en mémoire
+    pdf_output = BytesIO()
+    pdf.output(pdf_output)
+    pdf_output.seek(0)  # Remettre le pointeur au début pour la lecture
+    return pdf_output
 
 # Fonction pour convertir du texte en audio avec gTTS
 def text_to_audio(text, lang='fr'):
@@ -44,7 +68,7 @@ def audio_to_text(audio_file):
 st.sidebar.title("Navigation")
 option = st.sidebar.selectbox(
     "Choisissez une fonctionnalité",
-    ("Accueil", "Lecture (PDF vers Audio)", "Écriture (Audio vers Texte)")
+    ("Accueil", "Lecture (PDF vers Audio)", "Traduction PDF", "Écriture (Audio vers Texte)")
 )
 
 # Contenu de la page principale
@@ -52,10 +76,11 @@ if option == "Accueil":
     st.title("Application pour les élèves ayant des difficultés de lecture et d'écriture")
     st.write("""
     Cette application est conçue pour aider les élèves qui ont des difficultés en lecture et en écriture.
-    Elle propose deux fonctionnalités principales :
+    Elle propose trois fonctionnalités principales :
     
     1. **Lecture** : Convertir un fichier PDF en audio afin que l'élève puisse écouter le contenu.
-    2. **Écriture** : Enregistrer la voix de l'élève et transformer ses paroles en texte.
+    2. **Traduction** : Traduire le contenu d'un PDF dans une autre langue et générer un nouveau PDF traduit.
+    3. **Écriture** : Enregistrer la voix de l'élève et transformer ses paroles en texte.
     
     Utilisez le panneau latéral pour naviguer entre les différentes fonctionnalités.
     """)
@@ -88,7 +113,38 @@ elif option == "Lecture (PDF vers Audio)":
     else:
         st.info("Veuillez télécharger un fichier PDF pour commencer.")
 
+elif option == "Traduction PDF":
+    st.header("Traduire un PDF et générer un nouveau PDF")
 
+    # Téléchargement du fichier PDF
+    uploaded_pdf = st.file_uploader("Télécharger un fichier PDF", type="pdf")
+
+    if uploaded_pdf is not None:
+        # Extraction du texte du PDF
+        text = extract_text_from_pdf(uploaded_pdf)
+
+        if text:
+            # Afficher le texte extrait
+            st.text_area("Contenu extrait du PDF :", value=text, height=200, disabled=True)
+
+            # Choix de la langue de traduction
+            target_language = st.selectbox("Choisissez la langue de traduction", ['en', 'es', 'de'])
+
+            # Bouton pour traduire et générer un nouveau PDF
+            if st.button("Traduire et générer PDF"):
+                with st.spinner("Traduction en cours..."):
+                    translated_text = translate_text(text, target_language)
+
+                # Générer le PDF avec le texte traduit
+                pdf_output = generate_pdf(translated_text)
+
+                # Télécharger le PDF traduit
+                st.download_button("Télécharger le PDF traduit", data=pdf_output, file_name="translated_output.pdf", mime="application/pdf")
+        else:
+            st.error("Aucun texte n'a pu être extrait de ce fichier PDF.")
+    else:
+        st.info("Veuillez télécharger un fichier PDF pour commencer.")
+        
 elif option == "Écriture (Audio vers Texte)":
     st.header("Convertir un Enregistrement Audio en Texte")
 
