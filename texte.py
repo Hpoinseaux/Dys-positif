@@ -51,27 +51,17 @@ def create_pdf(text_list, output_file):
     pdf = PDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
-    pdf.set_font("Arial", size=12)
-
+    pdf.set_font("Arial", size=10)
+    pdf.set_left_margin(10)
+    pdf.set_right_margin(10)
+    
     for text in text_list:
         # Ajout du texte au PDF
         pdf.multi_cell(0, 10, text)
 
     pdf.output(output_file)
 
-# Fonction pour créer un PDF avec le texte traduit
-def create_pdf(text_list, output_file):
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.set_font("Arial", size=12)
 
-    for text in text_list:
-        pdf.add_page()
-        # Ajout du texte au PDF
-        for line in text.split('\n'):
-            pdf.multi_cell(0, 10, line)
-
-    pdf.output(output_file)
 
 # Fonction pour convertir du texte en audio avec gTTS
 def text_to_audio(text, lang='fr'):
