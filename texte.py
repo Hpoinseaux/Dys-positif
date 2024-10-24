@@ -9,9 +9,11 @@ from fpdf import FPDF  # Pour générer un nouveau PDF
 
 
 
+
 # Fonction pour extraire le texte d'un PDF
 def extract_text_from_pdf(uploaded_pdf):
-    document = fitz.open(uploaded_pdf)
+    # Utiliser BytesIO pour lire le fichier PDF depuis la mémoire
+    document = fitz.open(stream=uploaded_pdf.read(), filetype="pdf")
     text = ""
     for page in document:
         text += page.get_text() + "\n"
@@ -182,8 +184,10 @@ elif option == "Traduction PDF":
                 # Création d'un nouveau PDF avec le texte traduit
                 output_pdf = "translated_output.pdf"
                 create_pdf(text_chunks, output_pdf)
-                st.success("PDF traduit créé avec succès !")
-                st.download_button("Télécharger le PDF traduit", data=output_pdf, file_name="translated_output.pdf")
+                 # Lecture du PDF en mode binaire pour le téléchargement
+                with open(output_pdf, "rb") as f:
+                    st.success("PDF traduit créé avec succès !")
+                    st.download_button("Télécharger le PDF traduit", data=f, file_name="translated_output.pdf")
 
 elif option == "Écriture (Audio vers Texte)":
     st.header("Convertir un Enregistrement Audio en Texte")
