@@ -35,6 +35,30 @@ def split_text(text, max_length=4500):
     # Diviser le texte en morceaux ne dépassant pas max_length caractères
     return [text[i:i + max_length] for i in range(0, len(text), max_length)]
 
+class PDF(FPDF):
+    def header(self):
+        # En-tête
+        self.set_font("Arial", 'B', 12)
+        self.cell(0, 10, 'Titre de la leçon', 0, 1, 'C')
+
+    def footer(self):
+        # Pied de page
+        self.set_y(-15)
+        self.set_font("Arial", 'I', 8)
+        self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
+
+def create_pdf(text_list, output_file):
+    pdf = PDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    for text in text_list:
+        # Ajout du texte au PDF
+        pdf.multi_cell(0, 10, text)
+
+    pdf.output(output_file)
+
 # Fonction pour créer un PDF avec le texte traduit
 def create_pdf(text_list, output_file):
     pdf = FPDF()

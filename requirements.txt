@@ -3,4 +3,4 @@ gtts
 pymupdf
 SpeechRecognition 
 deep-translator
-fpdf
+fpdf2
