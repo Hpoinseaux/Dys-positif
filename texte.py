@@ -158,7 +158,7 @@ elif option == "Lecture (PDF vers Audio)":
             st.download_button("Télécharger l'audio", data=audio_file, file_name="output.mp3", mime="audio/mp3")
         else:
             st.error("Veuillez entrer du texte avant de convertir.")
-elif option == "Traduction ":
+elif option == "Traduction PDF":
     st.header("Traduire un pdf")
 
     # Téléchargement du fichier PDF
@@ -184,7 +184,7 @@ elif option == "Traduction ":
                 create_pdf(text_chunks, output_pdf)
                 st.success("PDF traduit créé avec succès !")
                 st.download_button("Télécharger le PDF traduit", data=output_pdf, file_name="translated_output.pdf")
-                
+
 elif option == "Écriture (Audio vers Texte)":
     st.header("Convertir un Enregistrement Audio en Texte")
 
