@@ -39,7 +39,7 @@ class PDF(FPDF):
     def header(self):
         # En-tête
         self.set_font("Arial", 'B', 12)
-        self.cell(0, 10, 'Titre de la leçon', 0, 1, 'C')
+        self.cell(0, 10, 'Traduction', 0, 1, 'C')
 
     def footer(self):
         # Pied de page
