@@ -10,8 +10,8 @@ from fpdf import FPDF  # Pour générer un nouveau PDF
 
 
 # Fonction pour extraire le texte d'un PDF
-def extract_text_from_pdf(pdf_file):
-    document = fitz.open(pdf_file)
+def extract_text_from_pdf(uploaded_pdf):
+    document = fitz.open(uploaded_pdf)
     text = ""
     for page in document:
         text += page.get_text() + "\n"
