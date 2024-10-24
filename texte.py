@@ -5,7 +5,7 @@ from io import BytesIO
 import speech_recognition as sr
 from deep_translator import GoogleTranslator
 from fpdf import FPDF  # Pour générer un nouveau PDF
-from transformers import pipeline
+import spacy
 
 
 
@@ -59,15 +59,14 @@ def text_to_audio(text, lang='fr'):
     audio_file.seek(0)  # Remettre le pointeur au début du fichier pour la lecture
     return audio_file
 
-punctuation_model = pipeline("text2text-generation", model="vamsi/T5_Paraphrase_Punctuation")
+nlp = spacy.load("fr_core_news_sm")
 
 # Fonction pour convertir l'audio en texte
 def audio_to_text(audio_file):
     recognizer = sr.Recognizer()
     with sr.AudioFile(audio_file) as source:
-        audio = recognizer.record(source)  # Lire le fichier audio
+        audio = recognizer.record(source)
         try:
-            # Utiliser l'API Google pour la reconnaissance vocale
             result = recognizer.recognize_google(audio, language="fr-FR")
             return result
         except sr.UnknownValueError:
@@ -77,10 +76,13 @@ def audio_to_text(audio_file):
             st.error("Erreur de demande à l'API de reconnaissance vocale.")
             return None
 
-# Amélioration de la ponctuation
+# Amélioration de la ponctuation avec spaCy
 def improve_punctuation(text):
-    improved_text = punctuation_model(f"{text} </s>")  # ajout de </s> pour signaler la fin de la phrase
-    return improved_text[0]['generated_text']
+    doc = nlp(text)
+    # Ceci pourrait être une simple manière de reformater le texte
+    improved_text = " ".join([token.text for token in doc])
+    return improved_text
+
 
 # Ajout d'un panneau latéral pour la navigation
 st.sidebar.title("Navigation")

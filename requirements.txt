@@ -4,5 +4,4 @@ pymupdf
 SpeechRecognition 
 deep-translator
 fpdf
-transformers
-torch
+spacy
