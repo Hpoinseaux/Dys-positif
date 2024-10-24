@@ -5,7 +5,7 @@ from io import BytesIO
 import speech_recognition as sr
 from deep_translator import GoogleTranslator
 from fpdf import FPDF  # Pour générer un nouveau PDF
-
+from transformers import pipeline
 
 
 
@@ -59,21 +59,28 @@ def text_to_audio(text, lang='fr'):
     audio_file.seek(0)  # Remettre le pointeur au début du fichier pour la lecture
     return audio_file
 
+punctuation_model = pipeline("text2text-generation", model="vamsi/T5_Paraphrase_Punctuation")
 
-
-# Fonction pour convertir un fichier audio téléchargé (WAV) en texte
+# Fonction pour convertir l'audio en texte
 def audio_to_text(audio_file):
-    r = sr.Recognizer()
+    recognizer = sr.Recognizer()
     with sr.AudioFile(audio_file) as source:
-        audio_data = r.record(source)
+        audio = recognizer.record(source)  # Lire le fichier audio
         try:
-            text = r.recognize_google(audio_data, language="fr-FR")
-            return text
+            # Utiliser l'API Google pour la reconnaissance vocale
+            result = recognizer.recognize_google(audio, language="fr-FR")
+            return result
         except sr.UnknownValueError:
-            return "Je n'ai pas compris l'audio."
+            st.error("L'audio n'a pas pu être compris.")
+            return None
         except sr.RequestError:
-            return "Erreur de service avec la reconnaissance vocale."
+            st.error("Erreur de demande à l'API de reconnaissance vocale.")
+            return None
 
+# Amélioration de la ponctuation
+def improve_punctuation(text):
+    improved_text = punctuation_model(f"{text} </s>")  # ajout de </s> pour signaler la fin de la phrase
+    return improved_text[0]['generated_text']
 
 # Ajout d'un panneau latéral pour la navigation
 st.sidebar.title("Navigation")
@@ -81,6 +88,21 @@ option = st.sidebar.selectbox(
     "Choisissez une fonctionnalité",
     ("Accueil", "Lecture (PDF vers Audio)", "Traduction PDF", "Écriture (Audio vers Texte)")
 )
+
+# Couleur de fond en utilisant st.markdown pour une section
+page_bg_img = '''
+<style>
+[data-testid="stMain"] {
+background-color: #343aeb; /* Couleur de fond */
+}
+</style>
+'''
+
+st.markdown(page_bg_img, unsafe_allow_html=True)
+
+st.image("https://images.pexels.com/photos/4181861/pexels-photo-4181861.jpeg", 
+         caption="Un enseignant et un élève en interaction", 
+         use_column_width=True)
 
 # Contenu de la page principale
 if option == "Accueil":
@@ -127,34 +149,39 @@ elif option == "Lecture (PDF vers Audio)":
 elif option == "Traduction PDF":
     st.header("Traduire un PDF et générer un nouveau PDF")
 
-    # Téléchargement du fichier PDF
-    uploaded_pdf = st.file_uploader("Télécharger un fichier PDF", type="pdf")
+     # Choix entre télécharger un PDF ou saisir du texte
+    input_method = st.radio("Choisissez la méthode d'entrée", ("Télécharger un PDF", "Saisir du texte"))
 
-    if uploaded_pdf is not None:
-        # Extraction du texte du PDF
-        text = extract_text_from_pdf(uploaded_pdf)
+    if input_method == "Télécharger un PDF":
+        # Téléchargement du fichier PDF
+        uploaded_pdf = st.file_uploader("Télécharger un fichier PDF", type="pdf")
 
-        if text:
-            # Afficher le texte extrait
-            st.text_area("Contenu extrait du PDF :", value=text, height=200, disabled=True)
+        if uploaded_pdf is not None:
+            # Extraction du texte du PDF
+            text = extract_text_from_pdf(uploaded_pdf)
 
-            # Choix de la langue de traduction
-            target_language = st.selectbox("Choisissez la langue de traduction", ['en', 'es', 'de'])
+            if text:
+                modified_text = st.text_area("Contenu extrait du PDF :", value=text, height=200)
+            else:
+                st.error("Aucun texte n'a pu être extrait de ce fichier PDF.")
 
-            # Bouton pour traduire et générer un nouveau PDF
-            if st.button("Traduire et générer PDF"):
-                with st.spinner("Traduction en cours..."):
-                    translated_text = translate_text(text, target_language)
+    elif input_method == "Saisir du texte":
+        # Zone de texte pour saisir directement le texte
+        modified_text = st.text_area("Saisir votre texte ici :", height=200)
 
-                # Générer le PDF avec le texte traduit
-                pdf_output = generate_pdf(translated_text)
+    # Choix de la langue
+    language = st.selectbox("Choisissez la langue de l'audio", ['fr', 'en', 'es', 'de'])
 
-                # Télécharger le PDF traduit
-                st.download_button("Télécharger le PDF traduit", data=pdf_output, file_name="translated_output.pdf", mime="application/pdf")
+    # Bouton pour générer l'audio
+    if st.button("Convertir en audio"):
+        if modified_text:
+            audio_file = text_to_audio(modified_text, lang=language)
+
+            # Lecture de l'audio et téléchargement
+            st.audio(audio_file, format='audio/mp3')
+            st.download_button("Télécharger l'audio", data=audio_file, file_name="output.mp3", mime="audio/mp3")
         else:
-            st.error("Aucun texte n'a pu être extrait de ce fichier PDF.")
-    else:
-        st.info("Veuillez télécharger un fichier PDF pour commencer.")
+            st.error("Veuillez entrer du texte avant de convertir.")
 
 elif option == "Écriture (Audio vers Texte)":
     st.header("Convertir un Enregistrement Audio en Texte")
@@ -166,12 +193,16 @@ elif option == "Écriture (Audio vers Texte)":
         # Lecture de l'audio
         st.audio(uploaded_audio)
         if st.button("Convertir en texte"):
-            wav_audio = uploaded_audio
             with st.spinner("Transcription en cours..."):
-                result_text = audio_to_text(wav_audio)
+                result_text = audio_to_text(uploaded_audio)
 
             if result_text:
+                # Améliorer la ponctuation dans le texte
+                improved_text = improve_punctuation(result_text)
+
                 st.write("Texte extrait de l'audio :")
-                st.text_area("Résultat", value=result_text, height=200)
+                st.text_area("Résultat", value=improved_text, height=200)
+            else:
+                st.error("La transcription n'a pas pu être effectuée.")
     else:
         st.info("Veuillez télécharger un fichier audio pour commencer.")
