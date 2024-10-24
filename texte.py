@@ -57,7 +57,7 @@ def create_pdf(text_list, output_file):
     pdf.add_font("DejaVu", "", "DejaVuSans.ttf", uni=True)  # Remplacez par le chemin vers votre police .ttf
     pdf.set_font("DejaVu", size=10)
 
-    pdf.add_page()
+    
     for text in text_list:
         # Ajout du texte au PDF
         pdf.multi_cell(0, 10, text)
