@@ -6,9 +6,17 @@ import speech_recognition as sr
 from deep_translator import GoogleTranslator
 from fpdf import FPDF  # Pour générer un nouveau PDF
 import spacy
+import subprocess
+import sys
 
-
-
+# Vérifiez si le modèle est déjà installé
+try:
+    nlp = spacy.load("fr_core_news_sm")
+except OSError:
+    # Installer le modèle si ce n'est pas le cas
+    st.write("Modèle spaCy non trouvé, installation en cours...")
+    subprocess.check_call([sys.executable, "-m", "spacy", "download", "fr_core_news_sm"])
+    nlp = spacy.load("fr_core_news_sm")
 
 # Fonction pour extraire du texte depuis un PDF
 def extract_text_from_pdf(pdf_file):

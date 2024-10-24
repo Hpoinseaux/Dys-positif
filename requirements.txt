@@ -5,3 +5,7 @@ SpeechRecognition
 deep-translator
 fpdf
 spacy
+torch
+
+# Script d'initialisation
+python -m spacy download fr_core_news_sm
