@@ -124,7 +124,7 @@ background-color: #71b3f5; /* Couleur de fond */
 
 st.markdown(page_bg_img, unsafe_allow_html=True)
 
-st.image("https://images.pexels.com/photos/4181861/pexels-photo-4181861.jpeg", 
+st.image("https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg", 
          use_column_width=True)
 
 # Contenu de la page principale
