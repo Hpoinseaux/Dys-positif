@@ -8,46 +8,44 @@ from fpdf import FPDF  # Pour générer un nouveau PDF
 
 
 
-# Fonction pour extraire du texte depuis un PDF
+
+# Fonction pour extraire le texte d'un PDF
 def extract_text_from_pdf(pdf_file):
-    doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
+    document = fitz.open(pdf_file)
     text = ""
-    for page in doc:
-        text += page.get_text()
+    for page in document:
+        text += page.get_text() + "\n"
+    document.close()
     return text
+
+# Fonction pour traduire le texte
+def translate_text(text, target_language):
+    try:
+        translator = GoogleTranslator(source='auto', target=target_language)
+        translation = translator.translate(text)
+        return translation
+    except Exception as e:
+        st.error(f"Erreur de traduction: {e}")
+        return None
 
 # Fonction pour diviser le texte en morceaux de taille maximale
 def split_text(text, max_length=4500):
     # Diviser le texte en morceaux ne dépassant pas max_length caractères
     return [text[i:i + max_length] for i in range(0, len(text), max_length)]
 
-# Fonction pour traduire du texte dans une autre langue avec deep_translator
-def translate_text(text, target_language):
-    translator = GoogleTranslator(source='auto', target=target_language)
-    # Diviser le texte en morceaux si nécessaire
-    text_segments = split_text(text)
-    
-    # Traduire chaque segment et les concaténer
-    translated_text = ""
-    for segment in text_segments:
-        translated_text += translator.translate(segment)
-    
-    return translated_text
-# Fonction pour générer un PDF avec du texte
-def generate_pdf(text):
+# Fonction pour créer un PDF avec le texte traduit
+def create_pdf(text_list, output_file):
     pdf = FPDF()
-    pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.set_font("Arial", size=12)
-    
-    # Ajouter le texte traduit au PDF
-    pdf.multi_cell(0, 10, text)
-    
-    # Sauvegarder le fichier PDF dans un buffer en mémoire
-    pdf_output = BytesIO()
-    pdf.output(pdf_output)
-    pdf_output.seek(0)  # Remettre le pointeur au début pour la lecture
-    return pdf_output
+
+    for text in text_list:
+        pdf.add_page()
+        # Ajout du texte au PDF
+        for line in text.split('\n'):
+            pdf.multi_cell(0, 10, line)
+
+    pdf.output(output_file)
 
 # Fonction pour convertir du texte en audio avec gTTS
 def text_to_audio(text, lang='fr'):
@@ -100,7 +98,7 @@ option = st.sidebar.selectbox(
 page_bg_img = '''
 <style>
 [data-testid="stMain"] {
-background-color: #343aeb; /* Couleur de fond */
+background-color: #71b3f5; /* Couleur de fond */
 }
 </style>
 '''
@@ -108,7 +106,6 @@ background-color: #343aeb; /* Couleur de fond */
 st.markdown(page_bg_img, unsafe_allow_html=True)
 
 st.image("https://images.pexels.com/photos/4181861/pexels-photo-4181861.jpeg", 
-         caption="Un enseignant et un élève en interaction", 
          use_column_width=True)
 
 # Contenu de la page principale
@@ -128,35 +125,7 @@ if option == "Accueil":
 elif option == "Lecture (PDF vers Audio)":
     st.header("Convertir un PDF en Audio")
 
-    # Téléchargement du fichier PDF
-    uploaded_pdf = st.file_uploader("Télécharger un fichier PDF", type="pdf")
-
-    if uploaded_pdf is not None:
-        # Extraction du texte du PDF
-        text = extract_text_from_pdf(uploaded_pdf)
-
-        if text:
-            modified_text = st.text_area("Contenu extrait du PDF :", value=text, height=200)
-
-            # Choix de la langue
-            language = st.selectbox("Choisissez la langue de l'audio", ['fr', 'en', 'es', 'de'])
-
-            # Bouton pour générer l'audio
-            if st.button("Convertir en audio"):
-                audio_file = text_to_audio(modified_text, lang=language)
-
-                # Lecture de l'audio et téléchargement
-                st.audio(audio_file, format='audio/mp3')
-                st.download_button("Télécharger l'audio", data=audio_file, file_name="output.mp3", mime="audio/mp3")
-        else:
-            st.error("Aucun texte n'a pu être extrait de ce fichier PDF.")
-    else:
-        st.info("Veuillez télécharger un fichier PDF pour commencer.")
-
-elif option == "Traduction PDF":
-    st.header("Traduire un PDF et générer un nouveau PDF")
-
-     # Choix entre télécharger un PDF ou saisir du texte
+ # Choix entre télécharger un PDF ou saisir du texte
     input_method = st.radio("Choisissez la méthode d'entrée", ("Télécharger un PDF", "Saisir du texte"))
 
     if input_method == "Télécharger un PDF":
@@ -189,7 +158,33 @@ elif option == "Traduction PDF":
             st.download_button("Télécharger l'audio", data=audio_file, file_name="output.mp3", mime="audio/mp3")
         else:
             st.error("Veuillez entrer du texte avant de convertir.")
+elif option == "Traduction ":
+    st.header("Traduire un pdf")
 
+    # Téléchargement du fichier PDF
+    uploaded_pdf = st.file_uploader("Télécharger un fichier PDF", type=["pdf"])
+
+    # Sélection de la langue de traduction
+    language = st.selectbox("Choisissez la langue de destination", ['fr', 'en', 'es', 'de', 'ur'])  # Ajoutez 'ur' pour l'ourdou
+
+    if uploaded_pdf is not None:
+        if st.button("Traduire"):
+            # Extraction du texte du PDF
+            original_text = extract_text_from_pdf(uploaded_pdf)
+            
+            # Traduction du texte
+            translated_text = translate_text(original_text, language)
+            
+            if translated_text:
+                # Diviser le texte traduit en morceaux
+                text_chunks = split_text(translated_text)
+                
+                # Création d'un nouveau PDF avec le texte traduit
+                output_pdf = "translated_output.pdf"
+                create_pdf(text_chunks, output_pdf)
+                st.success("PDF traduit créé avec succès !")
+                st.download_button("Télécharger le PDF traduit", data=output_pdf, file_name="translated_output.pdf")
+                
 elif option == "Écriture (Audio vers Texte)":
     st.header("Convertir un Enregistrement Audio en Texte")
 
