@@ -5,18 +5,8 @@ from io import BytesIO
 import speech_recognition as sr
 from deep_translator import GoogleTranslator
 from fpdf import FPDF  # Pour générer un nouveau PDF
-import spacy
-import subprocess
-import sys
 
-# Vérifiez si le modèle est déjà installé
-try:
-    nlp = spacy.load("fr_core_news_sm")
-except OSError:
-    # Installer le modèle si ce n'est pas le cas
-    st.write("Modèle spaCy non trouvé, installation en cours...")
-    subprocess.check_call([sys.executable, "-m", "spacy", "download", "fr_core_news_sm"])
-    nlp = spacy.load("fr_core_news_sm")
+
 
 # Fonction pour extraire du texte depuis un PDF
 def extract_text_from_pdf(pdf_file):
@@ -67,7 +57,7 @@ def text_to_audio(text, lang='fr'):
     audio_file.seek(0)  # Remettre le pointeur au début du fichier pour la lecture
     return audio_file
 
-nlp = spacy.load("fr_core_news_sm")
+
 
 # Fonction pour convertir l'audio en texte
 def audio_to_text(audio_file):
@@ -75,6 +65,7 @@ def audio_to_text(audio_file):
     with sr.AudioFile(audio_file) as source:
         audio = recognizer.record(source)
         try:
+            # Transcription de l'audio avec Google
             result = recognizer.recognize_google(audio, language="fr-FR")
             return result
         except sr.UnknownValueError:
@@ -84,14 +75,20 @@ def audio_to_text(audio_file):
             st.error("Erreur de demande à l'API de reconnaissance vocale.")
             return None
 
-# Amélioration de la ponctuation avec spaCy
-def improve_punctuation(text):
-    doc = nlp(text)
-    # Ceci pourrait être une simple manière de reformater le texte
-    improved_text = " ".join([token.text for token in doc])
-    return improved_text
+# Fonction pour améliorer le texte (par exemple, en remplaçant les mots répétitifs)
+def improve_text(text):
+    # Dictionnaire de mots ou phrases à remplacer
+    replacements = {
+        "point": ".",
+        "à la ligne":"\n"
 
+    }
 
+    # Remplacer chaque mot ou phrase selon le dictionnaire
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+
+    return text
 # Ajout d'un panneau latéral pour la navigation
 st.sidebar.title("Navigation")
 option = st.sidebar.selectbox(
@@ -200,16 +197,15 @@ elif option == "Écriture (Audio vers Texte)":
     uploaded_audio = st.file_uploader("Télécharger un fichier audio (WAV )", type=["wav"])
 
     if uploaded_audio is not None:
-        # Lecture de l'audio
         st.audio(uploaded_audio)
+
         if st.button("Convertir en texte"):
             with st.spinner("Transcription en cours..."):
                 result_text = audio_to_text(uploaded_audio)
 
             if result_text:
-                # Améliorer la ponctuation dans le texte
-                improved_text = improve_punctuation(result_text)
-
+                # Améliorer le texte
+                improved_text = improve_text(result_text)
                 st.write("Texte extrait de l'audio :")
                 st.text_area("Résultat", value=improved_text, height=200)
             else:
