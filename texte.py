@@ -228,3 +228,5 @@ elif option == "Écriture (Audio vers Texte)":
                 st.error("La transcription n'a pas pu être effectuée.")
     else:
         st.info("Veuillez télécharger un fichier audio pour commencer.")
+
+st.markdown("<h3 style='text-align: right; font-size: 14px;'>Hadrien Poinseaux</h3>", unsafe_allow_html=True)
