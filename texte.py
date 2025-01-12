@@ -126,7 +126,7 @@ background-color: #71b3f5; /* Couleur de fond */
 st.markdown(page_bg_img, unsafe_allow_html=True)
 
 st.image("https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg", 
-         use_column_width=True)
+         use_container_width=True)
 
 # Contenu de la page principale
 if option == "Accueil":
@@ -185,7 +185,7 @@ elif option == "Traduction PDF":
     uploaded_pdf = st.file_uploader("Télécharger un fichier PDF", type=["pdf"])
 
     # Sélection de la langue de traduction
-    language = st.selectbox("Choisissez la langue de destination", ['fr', 'en', 'es', 'de', 'ur','ar-eg', 'mr', 'uk'])  # Ajoutez 'ur' pour l'ourdou
+    language = st.selectbox("Choisissez la langue de destination", ['fr', 'en', 'es', 'de', 'ur','ar-eg', 'mr', 'uk'])  
 
     if uploaded_pdf is not None:
         if st.button("Traduire"):
