@@ -185,7 +185,7 @@ elif option == "Traduction PDF":
     uploaded_pdf = st.file_uploader("Télécharger un fichier PDF", type=["pdf"])
 
     # Sélection de la langue de traduction
-    language = st.selectbox("Choisissez la langue de destination", ['fr', 'en', 'es', 'de', 'ur','ar-eg', 'mr', 'uk'])  
+    language = st.selectbox("Choisissez la langue de destination", ['fr', 'en', 'es', 'de', 'ur','ar', 'mr', 'uk'])  
 
     if uploaded_pdf is not None:
         if st.button("Traduire"):
